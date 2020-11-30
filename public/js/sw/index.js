@@ -1,7 +1,6 @@
 const version = 2
 let cacheName = `wittr-static-v${version}`
 const urlsToCache = [
-  '/',
   '/css/main.css',
   '/imgs/icon.png',
   'https://fonts.gstatic.com/s/roboto/v15/2UX7WLTfW3W8TclTUvlFyQ.woff',
@@ -11,7 +10,10 @@ const urlsToCache = [
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(cacheName).then(function (cache) {
-      return cache.addAll(urlsToCache)
+      return Promise.all([
+        fetch('/skeleton').then(res => cache.put('/', res)),
+        cache.addAll(urlsToCache)
+      ])
     })
   )
 })
