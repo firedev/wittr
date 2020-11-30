@@ -2,7 +2,6 @@ const version = 2
 let cacheName = `wittr-static-v${version}`
 const urlsToCache = [
   '/',
-  '/js/main.js',
   '/css/main.css',
   '/imgs/icon.png',
   'https://fonts.gstatic.com/s/roboto/v15/2UX7WLTfW3W8TclTUvlFyQ.woff',
@@ -31,11 +30,15 @@ self.addEventListener('activate', function (event) {
   )
 })
 
-self.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', function (event) {
   if (event.request.url.includes('photos')) return event
   event.respondWith(
-    caches.match(event.request).then(function(response) {
-      return response || fetch(event.request);
+    caches.match(event.request).then(function (response) {
+      return response || fetch(event.request)
     })
-  );
+  )
+})
+
+self.addEventListener('message', function (event) {
+  if (event.data === 'refresh') self.skipWaiting()
 })
