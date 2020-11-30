@@ -1,6 +1,7 @@
 const version = 2
 let cacheName = `wittr-static-v${version}`
 const urlsToCache = [
+  '/skeleton',
   '/css/main.css',
   '/imgs/icon.png',
   'https://fonts.gstatic.com/s/roboto/v15/2UX7WLTfW3W8TclTUvlFyQ.woff',
@@ -10,10 +11,7 @@ const urlsToCache = [
 self.addEventListener('install', function (event) {
   event.waitUntil(
     caches.open(cacheName).then(function (cache) {
-      return Promise.all([
-        fetch('/skeleton').then(res => cache.put('/', res)),
-        cache.addAll(urlsToCache)
-      ])
+      cache.addAll(urlsToCache)
     })
   )
 })
@@ -34,10 +32,16 @@ self.addEventListener('activate', function (event) {
 
 self.addEventListener('fetch', function (event) {
   if (event.request.url.includes('photos')) return event
+  const requestUrl = newURL(event.request.url)
+  if(requestUrl.origin === location.origin && requestUrl.pathname === '/') {
+    return event.respondWith(caches.match('/skeleton'))
+  }
   event.respondWith(
-    caches.match(event.request).then(function (response) {
-      return response || fetch(event.request)
-    })
+    caches
+      .match(event.request.url === "/" ? "/skeleton" : event.request.url)
+      .then(function (response) {
+        return response || fetch(event.request)
+      })
   )
 })
 
