@@ -32,7 +32,7 @@ self.addEventListener('activate', function (event) {
 
 self.addEventListener('fetch', function (event) {
   if (event.request.url.includes('photos')) return event
-  const requestUrl = newURL(event.request.url)
+  const requestUrl = new URL(event.request.url)
   if(requestUrl.origin === location.origin && requestUrl.pathname === '/') {
     return event.respondWith(caches.match('/skeleton'))
   }

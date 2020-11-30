@@ -1,31 +1,26 @@
-import idb from 'idb';
+import idb from 'idb'
+window.idb = idb
 
-var dbPromise = idb.open('test-db', 1, function(upgradeDb) {
-  var keyValStore = upgradeDb.createObjectStore('keyval');
-  keyValStore.put("world", "hello");
-});
+const dbPromise = idb.open('test-db', 1, function (upgradeDB) {
+  const keyValStore = upgradeDB.createObjectStore('keyval')
+  keyValStore.put('hello', 'world')
+})
 
-// read "hello" in "keyval"
-dbPromise.then(function(db) {
-  var tx = db.transaction('keyval');
-  var keyValStore = tx.objectStore('keyval');
-  return keyValStore.get('hello');
-}).then(function(val) {
-  console.log('The value of "hello" is:', val);
-});
+window.dbPromise = dbPromise
 
-// set "foo" to be "bar" in "keyval"
-dbPromise.then(function(db) {
-  var tx = db.transaction('keyval', 'readwrite');
-  var keyValStore = tx.objectStore('keyval');
-  keyValStore.put('bar', 'foo');
-  return tx.complete;
-}).then(function() {
-  console.log('Added foo:bar to keyval');
-});
+dbPromise.then(db => {
+  const tx = db.transaction('keyval')
+  const keyValStore = tx.objectStore('keyval')
+  return keyValStore.get('hello')
+}).then(console.log)
 
-dbPromise.then(function(db) {
-  // TODO: in the keyval store, set
-  // "favoriteAnimal" to your favourite animal
-  // eg "cat" or "dog"
-});
+dbPromise.then(db => {
+  const tx = db.transaction('keyval', 'readwrite')
+  const keyValStore = tx.objectStore('keyval')
+  keyValStore.put('bar', 'foo')
+  return tx.complete
+}).then(console.log)
+
+dbPromise.then(db =>
+  db.transaction('keyval', 'readwrite').objectStore('keyval').put('cat', 'favoriteAnimal')
+)
