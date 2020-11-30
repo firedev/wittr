@@ -31,19 +31,11 @@ self.addEventListener('activate', function (event) {
   )
 })
 
-self.addEventListener('fetch', function (evt) {
-  if (evt.request.url.includes('photos')) return evt
-  evt.respondWith(
-    caches.match(evt.request, { cacheName }).then(function (res) {
-      if (res) {
-        return res
-      }
-      fetch(evt.request).then(function (fetchres) {
-        caches.open(cacheName).then(function (cache) {
-          cache.add(evt.request, fetchres)
-          return fetchres
-        })
-      })
+self.addEventListener('fetch', function(event) {
+  if (event.request.url.includes('photos')) return event
+  event.respondWith(
+    caches.match(event.request).then(function(response) {
+      return response || fetch(event.request);
     })
-  )
+  );
 })
