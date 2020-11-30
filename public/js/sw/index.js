@@ -17,11 +17,12 @@ self.addEventListener('install', function(event) {
   )
 })
 
-self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    fetch(event.request).then(function(response) {
-      if(response.status === 404) {
-        return fetch('/imgs/dr-evil.gif')
+self.addEventListener('fetch', function (evt) {
+  if (evt.request.url.includes('photos')) return evt
+  evt.respondWith(
+    caches.match(evt.request, { cacheName }).then(function (res) {
+      if (res) {
+        return res
       }
       return response
     }).catch(function() {
