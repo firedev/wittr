@@ -2,6 +2,21 @@ import PostsView from './views/Posts'
 import ToastsView from './views/Toasts'
 import idb from 'idb'
 
+function openDatabase() {
+  if (!navigator.serviceWorker) {
+    return Promise.resolve()
+  }
+
+  return idb.open('wittr', 1, function (upgradeDB) {
+    switch (upgradeDB.oldVersion) {
+      case 0: {
+        const wittrs = upgradeDB.createObjectStore('wittrs', { keyPath: 'id' })
+        wittrs.createIndex('by-date', 'time')
+      }
+    }
+  })
+}
+
 export default function IndexController(container) {
   this._container = container
   this._postsView = new PostsView(this._container)
@@ -9,6 +24,7 @@ export default function IndexController(container) {
   this._lostConnectionToast = null
   this._openSocket()
   this._registerServiceWorker()
+  this._dbPromise = openDatabase()
 }
 IndexController.prototype._registerServiceWorker = function () {
   var indexController = this
@@ -110,5 +126,13 @@ IndexController.prototype._openSocket = function () {
 // called when the web socket sends message data
 IndexController.prototype._onSocketMessage = function (data) {
   var messages = JSON.parse(data)
+  this._dbPromise.then(function (db) {
+    if (!db) return
+    const store = db.transaction('wittrs', 'readwrite').objectStore('wittrs')
+    messages.map((message) => {
+      store.put(message)
+    })
+  })
+
   this._postsView.addPosts(messages)
 }
