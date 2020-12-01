@@ -18,14 +18,18 @@ function openDatabase() {
 }
 
 export default function IndexController(container) {
+  var indexController = this
   this._container = container
   this._postsView = new PostsView(this._container)
   this._toastsView = new ToastsView(this._container)
   this._lostConnectionToast = null
-  this._openSocket()
   this._registerServiceWorker()
   this._dbPromise = openDatabase()
+  this._showCachedMessages().then(function () {
+    indexController._openSocket()
+  })
 }
+
 IndexController.prototype._registerServiceWorker = function () {
   var indexController = this
   if (navigator.serviceWorker) {
@@ -120,6 +124,20 @@ IndexController.prototype._openSocket = function () {
     setTimeout(function () {
       indexController._openSocket()
     }, 5000)
+  })
+}
+
+IndexController.prototype._showCachedMessages = function () {
+  var indexController = this
+  return this._dbPromise.then(function (db) {
+    if (!db || indexController._postsView.showingPosts()) return
+    db.transaction('wittrs')
+      .objectStore('wittrs')
+      .index('by-date')
+      .getAll()
+      .then((messages) =>
+        indexController._postsView.addPosts(messages.reverse())
+      )
   })
 }
 
