@@ -150,6 +150,15 @@ IndexController.prototype._onSocketMessage = function (data) {
     messages.map((message) => {
       store.put(message)
     })
+    store
+      .openCursor(null, 'prev')
+      .then((cursor) => cursor.advance(30))
+      .then(function deleteMessage(cursor) {
+        if (!cursor) return
+        console.log('Cursor at:', cursor.value.name)
+        cursor.delete()
+        return cursor.continue().then(deleteMessage)
+      })
   })
 
   this._postsView.addPosts(messages)
